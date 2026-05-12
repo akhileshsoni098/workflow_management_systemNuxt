@@ -1,4 +1,3 @@
-
 import { IUser } from "~~/server/types/user.types";
 import { handleError, handleErrorCatch } from "../../utils/errorHandler";
 import ProjectModel from "~~/server/models/project.model";
@@ -47,8 +46,13 @@ export default defineEventHandler(async (event) => {
       message: "Project retrieved successfully",
       data: project,
     };
-  } catch (err) {
-    const errMessage = err instanceof Error ? err.message : String(err);
-    return handleErrorCatch(500, errMessage);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      const statusCode = "statusCode" in err ? Number(err.statusCode) : 500;
+
+      return handleErrorCatch(statusCode, err.message);
+    }
+
+    return handleErrorCatch(500, "Internal Server Error");
   }
 });

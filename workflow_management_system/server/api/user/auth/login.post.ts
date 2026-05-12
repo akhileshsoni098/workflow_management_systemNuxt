@@ -37,10 +37,12 @@ export default defineEventHandler(async (event) => {
       token: token.token,
     };
   } catch (err: unknown) {
-    const errMessage = err instanceof Error ? err.message : String(err);
+    if (err instanceof Error) {
+      const statusCode = "statusCode" in err ? Number(err.statusCode) : 500;
 
-    console.log(errMessage);
+      return handleErrorCatch(statusCode, err.message);
+    }
 
-    return handleErrorCatch(500, errMessage);
+    return handleErrorCatch(500, "Internal Server Error");
   }
 });

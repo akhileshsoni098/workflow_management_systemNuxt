@@ -24,10 +24,12 @@ export default defineEventHandler(async (event) => {
       data: userData.user,
     };
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    if (err instanceof Error) {
+      const statusCode = "statusCode" in err ? Number(err.statusCode) : 500;
 
-    console.error(errorMessage);
+      return handleErrorCatch(statusCode, err.message);
+    }
 
-    return handleErrorCatch(500, errorMessage);
+    return handleErrorCatch(500, "Internal Server Error");
   }
 });

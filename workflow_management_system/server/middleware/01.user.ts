@@ -5,7 +5,7 @@ import { verifyToken } from "../services/user/auth.service";
 import { handleError } from "../utils/errorHandler";
 
 export default defineEventHandler(async (event) => {
- const path = getRequestURL(event).pathname;
+  const path = getRequestURL(event).pathname;
 
   // only api routes
   if (!path.startsWith("/api")) return;

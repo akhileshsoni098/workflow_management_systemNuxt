@@ -13,7 +13,7 @@ export const userRegisterService = async (body: IUser) => {
 
   if (existingUser) {
     throw createError({
-      statusCode: 409,
+      statusCode: 400,
       statusMessage: "Email already exists",
     });
   }

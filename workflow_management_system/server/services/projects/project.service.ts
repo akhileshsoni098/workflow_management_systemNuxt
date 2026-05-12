@@ -28,9 +28,10 @@ export const assignUsers = async (assignedUsers: string[]) => {
   if (existingUsers.length !== assignedUsers.length) {
     return { status: false, message: "One or more assigned users not found" };
   }
+
+  return { status: true, message: "validation success" };
 };
-
-
+ 
 // ============== create project service ===============
 export const projectCreateService = async (
   body: Project,
@@ -43,7 +44,7 @@ export const projectCreateService = async (
       status: boolean;
       message: string;
     };
-    if (!validtionResult.status) {
+    if (validtionResult.status === false) {
       return validtionResult;
     }
   }
@@ -51,7 +52,7 @@ export const projectCreateService = async (
   const project = await ProjectModel.create({
     name,
     description,
-    createdBy:createdBy,
+    createdBy: createdBy,
     assignedUsers: assignedUsers || [],
   });
 
@@ -67,6 +68,7 @@ export const projectCreateService = async (
 export const projectUpdateService = async (
   body: Project,
   updatedBy: string,
+  id:string
 ) => {
   const { name, description, assignedUsers } = body;
 
@@ -80,8 +82,8 @@ export const projectUpdateService = async (
     }
   }
 
-  const updateProject = await ProjectModel.findByIdAndUpdate(
-    updatedBy,
+  const updateProject = await ProjectModel.findOneAndUpdate(
+   {  _id: id, createdBy: updatedBy },
     {
       name,
       description,
@@ -103,10 +105,3 @@ export const projectUpdateService = async (
     data: updateProject,
   };
 };
-
-
-
-
-
-
-

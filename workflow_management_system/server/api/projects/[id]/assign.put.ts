@@ -59,8 +59,13 @@ export default defineEventHandler(async (event) => {
       message: "Users assigned to project successfully",
       data: updatedProject,
     };
-  } catch (err) {
-    const errMessage = err instanceof Error ? err.message : String(err);
-    return handleErrorCatch(500, errMessage);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      const statusCode = "statusCode" in err ? Number(err.statusCode) : 500;
+
+      return handleErrorCatch(statusCode, err.message);
+    }
+
+    return handleErrorCatch(500, "Internal Server Error");
   }
 });

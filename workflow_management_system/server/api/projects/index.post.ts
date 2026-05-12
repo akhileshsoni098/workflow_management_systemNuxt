@@ -15,11 +15,11 @@ export default defineEventHandler(async (event) => {
 
     const validatedData = projectSchema.parse(body);
 
-    if (!event.context.auth || !event.context.auth.userId) {
+    if (!event.context.user || !event.context.user._id) {
       return handleError(event, 401, "Unauthorized");
     }
 
-    const userId = event.context.auth?.userId as string;
+    const userId = event.context.user?._id as string;
 
     const result = await projectCreateService(validatedData as Project, userId) as { status: boolean; message: string; data: Project };
 
@@ -33,8 +33,13 @@ export default defineEventHandler(async (event) => {
       message: result.message,
       data: result.data,
     };
-  } catch (err) {
-    const errMessage = err instanceof Error ? err.message : String(err);
-    return handleErrorCatch(500, errMessage);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      const statusCode = "statusCode" in err ? Number(err.statusCode) : 500;
+
+      return handleErrorCatch(statusCode, err.message);
+    }
+
+    return handleErrorCatch(500, "Internal Server Error");
   }
 });
