@@ -1,6 +1,8 @@
 import { IUser } from "~~/server/types/user.types";
 import { handleError, handleErrorCatch } from "../../utils/errorHandler";
 import ProjectModel from "~~/server/models/project.model";
+import ActivityLogModel from "~~/server/models/activityLog.model";
+import { ActivityLog } from "~~/server/types/activityLog.types";
 
 // ============ delete particular project by project id ========
 
@@ -33,6 +35,19 @@ export default defineEventHandler(async (event) => {
     }
 
     await ProjectModel.findByIdAndDelete(projectId);
+
+    // activity log delete
+
+    (await ActivityLogModel.create({
+      userId: user._id,
+      actionType: "PROJECT_DELETED",
+      entityType: "Project",
+      entityId: projectId,
+    })) as ActivityLog;
+
+    globalThis.io?.emit("projectUpdated");
+
+    await clearProjectCache(projectId.toString());
 
     return {
       status: true,

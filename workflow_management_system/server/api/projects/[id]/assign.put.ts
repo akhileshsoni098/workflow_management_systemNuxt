@@ -1,5 +1,7 @@
+import ActivityLogModel from "~~/server/models/activityLog.model";
 import ProjectModel from "~~/server/models/project.model";
 import { assignUsers } from "~~/server/services/projects/project.service";
+import { ActivityLog } from "~~/server/types/activityLog.types";
 import { IUser } from "~~/server/types/user.types";
 
 export default defineEventHandler(async (event) => {
@@ -52,6 +54,19 @@ export default defineEventHandler(async (event) => {
     if (!updatedProject) {
       return handleError(event, 404, "Project not found");
     }
+
+    // activity log for assigning users to project
+
+    (await ActivityLogModel.create({
+      userId: _id,
+      actionType: "PROJECT_USERS_ASSIGNED",
+      entityType: "Project",
+      entityId: id,
+    })) as ActivityLog;
+
+    globalThis.io?.emit("projectUsersAssigned", updatedProject);
+
+    await clearProjectCache(id.toString());
 
     return {
       status: true,

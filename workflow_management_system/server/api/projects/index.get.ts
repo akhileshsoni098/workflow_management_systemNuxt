@@ -5,6 +5,13 @@ import ProjectModel from "~~/server/models/project.model";
 
 // ============== get all projects  ===============
 
+export interface queryProject  {
+      page?: number;
+      limit?: number;
+      name?: string;
+      assignedUser?: string;
+    };
+
 export default defineEventHandler(async (event) => {
   try {
     const user = event.context.user as IUser;
@@ -14,12 +21,7 @@ export default defineEventHandler(async (event) => {
       limit = 10,
       name,
       assignedUser,
-    } = getQuery(event) as {
-      page?: number;
-      limit?: number;
-      name?: string;
-      assignedUser?: string;
-    };
+    } = getQuery(event) as queryProject
 
     // page in number type conversion
 
@@ -37,6 +39,16 @@ export default defineEventHandler(async (event) => {
     if (name) {
       query.name = { $regex: name, $options: "i" };
     }
+
+    const cached = await getCache(projectsListKey(user, query  as queryProject));
+
+    if (cached) {
+      console.log("cache hit");
+
+      return cached;
+    }
+
+    console.log("cache miss");
 
     // emp only see assigned projects
 
@@ -69,6 +81,8 @@ export default defineEventHandler(async (event) => {
       page: page,
       limit: limit,
     };
+
+    await setCache(projectsListKey(user, query as queryProject), response, 60);
 
     return response;
   } catch (err: unknown) {

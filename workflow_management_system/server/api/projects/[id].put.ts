@@ -2,6 +2,8 @@ import { projectUpdateService } from "~~/server/services/projects/project.servic
 import { handleErrorCatch, handleError } from "../../utils/errorHandler";
 import { projectSchema } from "../../validators/project.validator";
 import { Project } from "~~/server/types/project.types";
+import ActivityLogModel from "~~/server/models/activityLog.model";
+import { ActivityLog } from "~~/server/types/activityLog.types";
 
 //=================== Update project ===============
 
@@ -37,6 +39,22 @@ export default defineEventHandler(async (event) => {
     if (!result.status) {
       return handleError(event, 400, result.message);
     }
+
+    // activity log update
+
+    (await ActivityLogModel.create({
+      userId: userId,
+      actionType: "PROJECT_UPDATED",
+      entityType: "Project",
+      entityId: result.data._id,
+    })) as ActivityLog;
+
+    globalThis.io?.emit("projectDeleted", {
+      projectId: id,
+      name: result.data.name,
+    });
+
+    await clearProjectCache(result.data._id.toString());
 
     return {
       status: true,

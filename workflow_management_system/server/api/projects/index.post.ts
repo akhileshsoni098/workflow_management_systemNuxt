@@ -2,8 +2,8 @@ import { projectCreateService } from "~~/server/services/projects/project.servic
 import { handleErrorCatch, handleError } from "../../utils/errorHandler";
 import { projectSchema } from "../../validators/project.validator";
 import { Project } from "~~/server/types/project.types";
-
-
+import ActivityLogModel from "~~/server/models/activityLog.model";
+import { ActivityLog } from "~~/server/types/activityLog.types";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -21,11 +21,28 @@ export default defineEventHandler(async (event) => {
 
     const userId = event.context.user?._id as string;
 
-    const result = await projectCreateService(validatedData as Project, userId) as { status: boolean; message: string; data: Project };
+    const result = (await projectCreateService(
+      validatedData as Project,
+      userId,
+    )) as { status: boolean; message: string; data: Project };
 
     if (!result.status) {
       return handleError(event, 400, result.message);
     }
+
+    // Activity Logs
+    (await ActivityLogModel.create({
+      userId: userId,
+      actionType: "PROJECT_CREATED",
+      entityType: "Project",
+      entityId: result.data._id,
+    })) as ActivityLog;
+
+    // socket io for real time updates
+
+    globalThis.io?.emit("projectCreated", result.data);
+
+    await clearProjectCache(result.data._id.toString());
 
     return {
       status: true,

@@ -17,6 +17,8 @@ export default defineEventHandler(async (event) => {
 
     const userData = await userRegisterService(validatedData);
 
+     await clearUsersCache();
+
     return {
       status: true,
       statusCode: 201,

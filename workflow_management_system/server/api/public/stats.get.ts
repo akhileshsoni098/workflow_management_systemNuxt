@@ -1,12 +1,12 @@
-// import User from '../../models/User';
-// import Project from '../../models/Project';
-// import Task from '../../models/Task';
+import ProjectModel from "~~/server/models/project.model";
+import TaskModel from "~~/server/models/task.model";
+import User from "~~/server/models/user.model";
 
-// export default defineEventHandler(async () => {
-//   const [totalUsers, totalProjects, totalTasks] = await Promise.all([
-//     User.countDocuments(),
-//     Project.countDocuments(),
-//     Task.countDocuments()
-//   ]);
-//   return { totalUsers, totalProjects, totalTasks };
-// });
+export default defineEventHandler(async () => {
+  const [totalUsers, totalProjects, totalTasks] = await Promise.all([
+    User.countDocuments(),
+    ProjectModel.countDocuments(),
+    TaskModel.countDocuments(),
+  ]);
+  return { totalUsers, totalProjects, totalTasks };
+});
